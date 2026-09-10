@@ -22,11 +22,14 @@
   }
   canvas { display:block; background:#1a1a24; }
 
+  /* Section 3: Custom Modern Glassmorphism Overlay */
   .overlay {
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; color:#fff;
-    background:linear-gradient(180deg, rgba(10,10,20,0.92), rgba(20,5,15,0.96));
+    background: rgba(12, 12, 22, 0.88) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding:24px;
   }
   .hidden { display:none !important; }
@@ -46,29 +49,40 @@
   }
   button:active { transform:scale(0.95); }
 
+  /* Glass HUD Panels */
   #hud {
-    position:absolute; top:0; left:0; right:0;
-    display:flex; justify-content:space-between; padding:12px 16px;
+    position:absolute; top: 12px; left: 12px; right: 12px;
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display:flex; justify-content:space-between; padding:8px 16px;
     color:#fff; font-weight:700; font-size:15px;
     text-shadow:0 1px 4px rgba(0,0,0,0.8);
     z-index:5; pointer-events:none;
   }
   #hud .coins { color:#ffd23f; }
   #hud .dist { color:#4fc3ff; }
+
+  /* Sleek Heat Level Bar */
   #heat {
-    position:absolute; top:38px; left:16px; right:16px;
-    height:6px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden;
-    z-index:5;
+    position:absolute; top: 54px; left: 12px; right: 12px;
+    height: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);
+    background:rgba(255,255,255,0.15); overflow:hidden; z-index:5;
   }
   #heatBar { height:100%; width:0%; background:linear-gradient(90deg,#ffd23f,#ff2b4c); transition:width .2s; }
 
+  /* Touch Control Buttons */
   #controls {
     position:absolute; bottom:14px; left:0; right:0;
     display:flex; justify-content:center; gap:10px; z-index:5;
   }
   .ctrlBtn {
-    width:58px; height:58px; border-radius:50%;
-    background:rgba(255,255,255,0.12); border:2px solid rgba(255,255,255,0.3);
+    width:62px; height:62px; border-radius:50%;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border:2px solid rgba(255,255,255,0.3);
     color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center;
     user-select:none; -webkit-user-select:none; touch-action:manipulation;
   }
@@ -131,6 +145,39 @@
 
 <script>
 (function(){
+  // Section 1: Web Audio API Sound Generator
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playCoinSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  function playCrashSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  }
+
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -146,33 +193,34 @@
   const finalDist = document.getElementById('finalDist');
   const finalCoins = document.getElementById('finalCoins');
 
-  const LANES = [W*0.22, W*0.5, W*0.78]; // left, center, right lane x positions at player depth
+  const LANES = [W*0.22, W*0.5, W*0.78];
   const GROUND_Y = H - 110;
 
-  let state = 'menu'; // menu | running | gameover
+  let state = 'menu';
   let laneIndex = 1;
   let playerX = LANES[1];
   let playerY = GROUND_Y;
   let jumping = false, jumpVel = 0;
   let sliding = false, slideTimer = 0;
-  const SLIDE_DURATION = 0.6; // seconds — quick slide under obstacles
+  const SLIDE_DURATION = 0.6;
   const GRAVITY = 1600;
   const JUMP_FORCE = -680;
 
-  let speed = 420;           // world scroll speed (px/sec at road scale)
+  let speed = 420;
   let baseSpeed = 420;
   let distance = 0;
   let coins = 0;
   let coinTimer = 0;
   let elapsed = 0;
-  let heat = 0; // police proximity 0..1, purely cosmetic tension bar tied to speed ramp
+  let heat = 0;
 
-  let obstacles = []; // {lane, z (0..1 depth, 1=far,0=at player), type:'car'|'barrier'|'beam', passed}
+  let obstacles = [];
   let spawnTimer = 0;
   let particles = [];
   let coinPickups = [];
 
   function resetGame(){
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     state = 'running';
     laneIndex = 1;
     playerX = LANES[1];
@@ -189,6 +237,7 @@
   }
 
   function gameOver(){
+    playCrashSound(); // Play Crash SFX
     state = 'gameover';
     finalDist.textContent = Math.floor(distance);
     finalCoins.textContent = coins;
@@ -216,7 +265,6 @@
   document.getElementById('btnJump').addEventListener('click', doJump);
   document.getElementById('btnSlide').addEventListener('click', doSlide);
 
-  // touch swipe support
   let touchStartX=0, touchStartY=0;
   canvas.addEventListener('touchstart', (e)=>{
     touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
@@ -240,11 +288,10 @@
     const r = Math.random();
     let type = 'car';
     if(r < 0.33) type = 'car';
-    else if(r < 0.66) type = 'barrier'; // needs jump
-    else type = 'beam';                 // needs slide
+    else if(r < 0.66) type = 'barrier';
+    else type = 'beam';
     obstacles.push({ lane, z: 1.0, type, passed:false });
 
-    // occasionally add a coin above/along a safe lane
     if(Math.random() < 0.5){
       const coinLane = Math.floor(Math.random()*3);
       coinPickups.push({ lane: coinLane, z: 1.0, taken:false });
@@ -255,35 +302,31 @@
   function update(dt){
     elapsed += dt;
     distance += speed*dt*0.05;
-    speed = baseSpeed + Math.min(elapsed*4, 260); // gradual ramp up = police closing in
+    speed = baseSpeed + Math.min(elapsed*4, 260);
     heat = Math.min(1, (speed-baseSpeed)/260);
     heatBar.style.width = (heat*100)+'%';
 
-    // coin timer: +10 every 20 seconds survived
     coinTimer += dt;
     if(coinTimer >= 20){
       coinTimer -= 20;
       coins += 10;
+      playCoinSound();
       particles.push({x:W-60,y:40,life:1,text:'+10'});
     }
 
-    // player lane easing
     const targetX = LANES[laneIndex];
     playerX += (targetX-playerX)*Math.min(1, dt*12);
 
-    // jump physics
     if(jumping){
       jumpVel += GRAVITY*dt;
       playerY += jumpVel*dt;
       if(playerY >= GROUND_Y){ playerY = GROUND_Y; jumping=false; jumpVel=0; }
     }
-    // slide timer
     if(sliding){
       slideTimer -= dt;
       if(slideTimer <= 0){ sliding = false; }
     }
 
-    // spawn control
     spawnTimer -= dt;
     const spawnInterval = Math.max(0.55, 1.3 - elapsed*0.01);
     if(spawnTimer <= 0){
@@ -291,16 +334,10 @@
       spawnTimer = spawnInterval;
     }
 
-    // move obstacles toward player (z: 1 far -> 0 at player)
     const zSpeed = (speed/420) * 0.62;
-    for(const ob of obstacles){
-      ob.z -= zSpeed*dt;
-    }
-    for(const c of coinPickups){
-      c.z -= zSpeed*dt;
-    }
+    for(const ob of obstacles){ ob.z -= zSpeed*dt; }
+    for(const c of coinPickups){ c.z -= zSpeed*dt; }
 
-    // collision check near z ~ 0.06-0.16 (player depth band)
     for(const ob of obstacles){
       if(ob.passed) continue;
       if(ob.z <= 0.14 && ob.z >= 0.0){
@@ -309,18 +346,21 @@
           let avoided = false;
           if(ob.type === 'barrier' && jumping) avoided = true;
           if(ob.type === 'beam' && sliding) avoided = true;
-          if(ob.type === 'car') avoided = false; // must change lane
+          if(ob.type === 'car') avoided = false;
           if(!avoided){ gameOver(); return; }
         }
       }
     }
 
-    // coin pickup check
     for(const c of coinPickups){
       if(c.taken) continue;
       if(c.z <= 0.14 && c.z >= 0.0){
         c.taken = true;
-        if(c.lane === laneIndex){ coins += 1; particles.push({x:playerX,y:playerY-60,life:1,text:'+1'}); }
+        if(c.lane === laneIndex){ 
+          coins += 1; 
+          playCoinSound(); // Play Coin SFX
+          particles.push({x:playerX,y:playerY-60,life:1,text:'+1'}); 
+        }
       }
     }
 
@@ -339,9 +379,7 @@
     const nearX = LANES[lane];
     return horizonX + (nearX-horizonX)*(1-z);
   }
-  function scaleAtZ(z){
-    return 0.15 + (1-z)*0.85; // small far away, big near
-  }
+  function scaleAtZ(z){ return 0.15 + (1-z)*0.85; }
   function yAtZ(z){
     const horizonY = H*0.32;
     return horizonY + (GROUND_Y-horizonY)*(1-z);
@@ -390,41 +428,64 @@
     ctx.fillRect(0,0,W,H);
   }
 
+  // Section 2: Animated Character Drawing
   function drawPlayer(){
     const px = playerX;
     let py = playerY;
-    let squashY = 1;
-    if(sliding) squashY = 0.55;
-    const bodyH = 70*squashY;
-    const bodyW = 34;
 
+    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
-    ctx.ellipse(px, GROUND_Y+18, 26, 8, 0,0,Math.PI*2);
+    ctx.ellipse(px, GROUND_Y + 15, 24, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    const runCycle = Math.sin(elapsed*18);
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 8;
-    if(!sliding){
+    const legCycle = Math.sin(elapsed * 15);
+    const armCycle = Math.cos(elapsed * 15);
+
+    if (sliding) {
+      // Sliding Posture
+      ctx.fillStyle = '#ff2b4c';
+      ctx.fillRect(px - 20, py - 25, 40, 20);
+      ctx.fillStyle = '#111';
+      ctx.fillRect(px - 30, py - 10, 35, 10);
+      ctx.fillStyle = '#f2c48a';
       ctx.beginPath();
-      ctx.moveTo(px-8, py+ bodyH*0.5 - 10);
-      ctx.lineTo(px-8+runCycle*10, py+bodyH*0.5+22);
-      ctx.moveTo(px+8, py+ bodyH*0.5 -10);
-      ctx.lineTo(px+8-runCycle*10, py+bodyH*0.5+22);
+      ctx.arc(px + 15, py - 20, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Running / Jumping Posture
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+
+      ctx.strokeStyle = '#1a1a2e';
+      ctx.beginPath();
+      if (jumping) {
+        ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 14, py - 10);
+        ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 12, py - 5);
+      } else {
+        ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 6 + legCycle * 16, py);
+        ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 6 - legCycle * 16, py);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#ff2b4c';
+      ctx.beginPath();
+      ctx.fillRect(px - 12, py - 55, 24, 32);
+
+      ctx.fillStyle = '#f2c48a';
+      ctx.beginPath();
+      ctx.arc(px, py - 63, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#222';
+      ctx.fillRect(px - 12, py - 73, 20, 6);
+
+      ctx.strokeStyle = '#ff2b4c';
+      ctx.beginPath();
+      ctx.moveTo(px, py - 45); ctx.lineTo(px - 14 + armCycle * 12, py - 30);
+      ctx.moveTo(px, py - 45); ctx.lineTo(px + 14 - armCycle * 12, py - 30);
       ctx.stroke();
     }
-
-    ctx.fillStyle = '#ff2b4c';
-    ctx.fillRect(px-bodyW/2, py-bodyH, bodyW, bodyH);
-
-    ctx.fillStyle = '#f2c48a';
-    ctx.beginPath();
-    ctx.arc(px, py-bodyH-14, 15, 0, Math.PI*2);
-    ctx.fill();
-
-    ctx.fillStyle = '#222';
-    ctx.fillRect(px+bodyW/2-2, py-bodyH+10, 20, 6);
   }
 
   function drawObstacle(ob){
@@ -492,7 +553,6 @@
     drawParticles();
   }
 
-  // ---------- Loop ----------
   let lastTime = performance.now();
   function loop(now){
     const dt = Math.min(0.04, (now-lastTime)/1000);
