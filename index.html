@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Police Chase Runner</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -22,7 +23,7 @@
   }
   canvas { display:block; background:#1a1a24; }
 
-  /* Section 3: Custom Modern Glassmorphism Overlay */
+  /* Glassmorphism Overlay */
   .overlay {
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -49,7 +50,7 @@
   }
   button:active { transform:scale(0.95); }
 
-  /* Glass HUD Panels */
+  /* HUD Styling */
   #hud {
     position:absolute; top: 12px; left: 12px; right: 12px;
     background: rgba(255, 255, 255, 0.07);
@@ -64,7 +65,7 @@
   #hud .coins { color:#ffd23f; }
   #hud .dist { color:#4fc3ff; }
 
-  /* Sleek Heat Level Bar */
+  /* Heat Level Bar */
   #heat {
     position:absolute; top: 54px; left: 12px; right: 12px;
     height: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);
@@ -72,7 +73,7 @@
   }
   #heatBar { height:100%; width:0%; background:linear-gradient(90deg,#ffd23f,#ff2b4c); transition:width .2s; }
 
-  /* Touch Control Buttons */
+  /* On-screen Controls */
   #controls {
     position:absolute; bottom:14px; left:0; right:0;
     display:flex; justify-content:center; gap:10px; z-index:5;
@@ -145,30 +146,21 @@
 
 <script>
 (function(){
-  // Section 1: Web Audio API Sound Generator
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // ---------- Custom Sound Effects & Assets ----------
+  const customCrashSound = new Audio('crash.mp3');
+  const customCoinSound = new Audio('coin.mp3');
+  
+  const playerImg = new Image();
+  playerImg.src = 'character.png'; // Will fallback to procedural drawing if file missing
 
   function playCoinSound() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.15);
+    customCoinSound.currentTime = 0;
+    customCoinSound.play().catch(() => {});
   }
 
-  const customCrashSound = new Audio('crash.mp3');
-
-function playCrashSound() {
-  customCrashSound.currentTime = 0;
-  customCrashSound.play().catch(err => console.log('Audio playback prevented:', err));
-}
+  function playCrashSound() {
+    customCrashSound.currentTime = 0;
+    customCrashSound.play().catch(() => {});
   }
 
   const canvas = document.getElementById('game');
@@ -213,7 +205,6 @@ function playCrashSound() {
   let coinPickups = [];
 
   function resetGame(){
-    if (audioCtx.state === 'suspended') audioCtx.resume();
     state = 'running';
     laneIndex = 1;
     playerX = LANES[1];
@@ -230,7 +221,7 @@ function playCrashSound() {
   }
 
   function gameOver(){
-    playCrashSound(); // Play Crash SFX
+    playCrashSound();
     state = 'gameover';
     finalDist.textContent = Math.floor(distance);
     finalCoins.textContent = coins;
@@ -351,7 +342,7 @@ function playCrashSound() {
         c.taken = true;
         if(c.lane === laneIndex){ 
           coins += 1; 
-          playCoinSound(); // Play Coin SFX
+          playCoinSound();
           particles.push({x:playerX,y:playerY-60,life:1,text:'+1'}); 
         }
       }
@@ -366,7 +357,7 @@ function playCrashSound() {
     coinVal.textContent = coins;
   }
 
-  // ---------- Perspective helpers ----------
+  // ---------- Perspective Helpers ----------
   function laneXatZ(lane, z){
     const horizonX = W/2;
     const nearX = LANES[lane];
@@ -378,149 +369,201 @@ function playCrashSound() {
     return horizonY + (GROUND_Y-horizonY)*(1-z);
   }
 
-  // ---------- Drawing ----------
-  function drawRoad(){
-    const g = ctx.createLinearGradient(0,0,0,H*0.4);
-    g.addColorStop(0,'#1b1030'); g.addColorStop(1,'#2a1730');
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H*0.4);
+  // ---------- Subway Surfers Graphics Theme ----------
+  function drawRoad() {
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.35);
+    skyGrad.addColorStop(0, '#1a0b2e');
+    skyGrad.addColorStop(0.5, '#6b114d');
+    skyGrad.addColorStop(1, '#ff5e36');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H * 0.35);
 
-    ctx.fillStyle = 'rgba(255,43,76,0.08)';
-    ctx.fillRect(0,H*0.25,W,H*0.15);
+    ctx.fillStyle = '#110519';
+    ctx.fillRect(40, H * 0.22, 50, H * 0.1);
+    ctx.fillRect(110, H * 0.18, 70, H * 0.14);
+    ctx.fillRect(300, H * 0.20, 60, H * 0.12);
 
-    const horizonY = H*0.32;
-    ctx.fillStyle = '#26262f';
+    const horizonY = H * 0.32;
+
+    ctx.fillStyle = '#2b2633';
     ctx.beginPath();
-    ctx.moveTo(W*0.5-40, horizonY);
-    ctx.lineTo(W*0.5+40, horizonY);
-    ctx.lineTo(W*0.95, H);
-    ctx.lineTo(W*0.05, H);
+    ctx.moveTo(W * 0.5 - 45, horizonY);
+    ctx.lineTo(W * 0.5 + 45, horizonY);
+    ctx.lineTo(W * 0.98, H);
+    ctx.lineTo(W * 0.02, H);
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255,210,63,0.55)';
-    ctx.lineWidth = 3;
-    const scrollOffset = (elapsed*speed*0.02) % 40;
-    for(let div=1; div<=2; div++){
-      const t = div/3;
-      ctx.beginPath();
-      for(let zz=1; zz>=0; zz-=0.02){
-        const topX = W*0.5-40 + ((W*0.5+40)-(W*0.5-40))*t;
-        const nearX = W*0.05 + (W*0.95-W*0.05)*t;
-        const x = topX + (nearX-topX)*(1-zz);
-        const y = horizonY + (H-horizonY)*(1-zz);
-        if(zz===1) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      }
-      ctx.setLineDash([18,18]);
-      ctx.lineDashOffset = -scrollOffset;
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+    const scrollOffset = (elapsed * speed * 0.03) % 30;
+    for (let lane = 0; lane < 3; lane++) {
+      const xTop = W * 0.5 - 30 + lane * 30;
+      const xBottom = W * 0.18 + lane * (W * 0.32);
 
-    const flash = Math.sin(elapsed*10) > 0 ? 'rgba(255,40,60,0.25)' : 'rgba(60,140,255,0.25)';
-    ctx.fillStyle = flash;
-    ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = '#8b9bb4';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(xTop, horizonY);
+      ctx.lineTo(xBottom, H);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#4a3525';
+      ctx.lineWidth = 6;
+      for (let z = 1; z >= 0; z -= 0.08) {
+        const currentZ = (z + scrollOffset * 0.002) % 1;
+        const y = horizonY + (H - horizonY) * (1 - currentZ);
+        const rx = laneXatZ(lane, currentZ);
+        const scale = scaleAtZ(currentZ);
+        ctx.beginPath();
+        ctx.moveTo(rx - 18 * scale, y);
+        ctx.lineTo(rx + 18 * scale, y);
+        ctx.stroke();
+      }
+    }
   }
 
-  // Section 2: Animated Character Drawing
   function drawPlayer(){
     const px = playerX;
     let py = playerY;
 
-    // Shadow
+    // Draw Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.ellipse(px, GROUND_Y + 15, 24, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    const legCycle = Math.sin(elapsed * 15);
-    const armCycle = Math.cos(elapsed * 15);
-
-    if (sliding) {
-      // Sliding Posture
-      ctx.fillStyle = '#ff2b4c';
-      ctx.fillRect(px - 20, py - 25, 40, 20);
-      ctx.fillStyle = '#111';
-      ctx.fillRect(px - 30, py - 10, 35, 10);
-      ctx.fillStyle = '#f2c48a';
-      ctx.beginPath();
-      ctx.arc(px + 15, py - 20, 10, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Running / Jumping Posture
-      ctx.lineWidth = 6;
-      ctx.lineCap = 'round';
-
-      ctx.strokeStyle = '#1a1a2e';
-      ctx.beginPath();
-      if (jumping) {
-        ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 14, py - 10);
-        ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 12, py - 5);
+    // Check if custom character image loaded successfully
+    if (playerImg.complete && playerImg.naturalWidth !== 0) {
+      const charWidth = 60, charHeight = 80;
+      if (sliding) {
+        ctx.drawImage(playerImg, px - charWidth / 2, py - charHeight / 2, charWidth, charHeight / 2);
       } else {
-        ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 6 + legCycle * 16, py);
-        ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 6 - legCycle * 16, py);
+        ctx.drawImage(playerImg, px - charWidth / 2, py - charHeight, charWidth, charHeight);
       }
-      ctx.stroke();
+    } else {
+      // Procedural Vector Character fallback
+      const legCycle = Math.sin(elapsed * 15);
+      const armCycle = Math.cos(elapsed * 15);
 
-      ctx.fillStyle = '#ff2b4c';
-      ctx.beginPath();
-      ctx.fillRect(px - 12, py - 55, 24, 32);
+      if (sliding) {
+        ctx.fillStyle = '#ff2b4c';
+        ctx.fillRect(px - 20, py - 25, 40, 20);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(px - 30, py - 10, 35, 10);
+        ctx.fillStyle = '#f2c48a';
+        ctx.beginPath();
+        ctx.arc(px + 15, py - 20, 10, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.lineWidth = 6; ctx.lineCap = 'round';
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.beginPath();
+        if (jumping) {
+          ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 14, py - 10);
+          ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 12, py - 5);
+        } else {
+          ctx.moveTo(px - 6, py - 25); ctx.lineTo(px - 6 + legCycle * 16, py);
+          ctx.moveTo(px + 6, py - 25); ctx.lineTo(px + 6 - legCycle * 16, py);
+        }
+        ctx.stroke();
 
-      ctx.fillStyle = '#f2c48a';
-      ctx.beginPath();
-      ctx.arc(px, py - 63, 10, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = '#ff2b4c';
+        ctx.fillRect(px - 12, py - 55, 24, 32);
 
-      ctx.fillStyle = '#222';
-      ctx.fillRect(px - 12, py - 73, 20, 6);
+        ctx.fillStyle = '#f2c48a';
+        ctx.beginPath();
+        ctx.arc(px, py - 63, 10, 0, Math.PI * 2);
+        ctx.fill();
 
-      ctx.strokeStyle = '#ff2b4c';
-      ctx.beginPath();
-      ctx.moveTo(px, py - 45); ctx.lineTo(px - 14 + armCycle * 12, py - 30);
-      ctx.moveTo(px, py - 45); ctx.lineTo(px + 14 - armCycle * 12, py - 30);
-      ctx.stroke();
+        ctx.fillStyle = '#222';
+        ctx.fillRect(px - 12, py - 73, 20, 6);
+
+        ctx.strokeStyle = '#ff2b4c';
+        ctx.beginPath();
+        ctx.moveTo(px, py - 45); ctx.lineTo(px - 14 + armCycle * 12, py - 30);
+        ctx.moveTo(px, py - 45); ctx.lineTo(px + 14 - armCycle * 12, py - 30);
+        ctx.stroke();
+      }
     }
   }
 
-  function drawObstacle(ob){
+  function drawObstacle(ob) {
     const x = laneXatZ(ob.lane, ob.z);
     const y = yAtZ(ob.z);
     const s = scaleAtZ(ob.z);
 
-    if(ob.type === 'car'){
-      const w = 70*s, h = 40*s;
-      ctx.fillStyle = '#3355ff';
-      ctx.fillRect(x-w/2, y-h, w, h);
-      ctx.fillStyle = '#aee5ff';
-      ctx.fillRect(x-w/2+w*0.15, y-h+h*0.15, w*0.7, h*0.35);
-      ctx.fillStyle='#fff9c4';
-      ctx.fillRect(x-w/2, y-h*0.3, w*0.15, h*0.2);
-      ctx.fillRect(x+w/2-w*0.15, y-h*0.3, w*0.15, h*0.2);
-    } else if(ob.type === 'barrier'){
-      const w = 56*s, h = 22*s;
-      ctx.fillStyle = '#ffcc33';
-      ctx.fillRect(x-w/2, y-h, w, h);
-      ctx.strokeStyle = '#000'; ctx.lineWidth = Math.max(1,2*s);
-      ctx.strokeRect(x-w/2, y-h, w, h);
-    } else if(ob.type === 'beam'){
-      const w = 70*s;
-      const beamY = y - 90*s;
+    ctx.save();
+    if (ob.type === 'car') {
+      const w = 80 * s, h = 60 * s;
+
+      const trainGrad = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+      trainGrad.addColorStop(0, '#d92338');
+      trainGrad.addColorStop(0.5, '#ff4757');
+      trainGrad.addColorStop(1, '#a81325');
+
+      ctx.fillStyle = trainGrad;
+      ctx.beginPath();
+      ctx.roundRect(x - w / 2, y - h, w, h, 6 * s);
+      ctx.fill();
+
+      ctx.strokeStyle = '#2f3542';
+      ctx.lineWidth = Math.max(2, 3 * s);
+      ctx.stroke();
+
+      ctx.fillStyle = '#70a1ff';
+      ctx.fillRect(x - w / 2 + w * 0.1, y - h + h * 0.15, w * 0.8, h * 0.3);
+
+      ctx.fillStyle = '#eccc68';
+      ctx.beginPath();
+      ctx.arc(x - w * 0.3, y - h * 0.2, 5 * s, 0, Math.PI * 2);
+      ctx.arc(x + w * 0.3, y - h * 0.2, 5 * s, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (ob.type === 'barrier') {
+      const w = 65 * s, h = 28 * s;
+
+      ctx.fillStyle = '#ffa502';
+      ctx.fillRect(x - w / 2, y - h, w, h);
+      ctx.fillStyle = '#2f3542';
+      ctx.beginPath();
+      ctx.moveTo(x - w / 2, y - h); ctx.lineTo(x - w / 4, y - h);
+      ctx.lineTo(x - w / 2, y); ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x, y - h); ctx.lineTo(x + w / 4, y - h);
+      ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+
+      ctx.strokeStyle = '#1e272e';
+      ctx.lineWidth = Math.max(1.5, 2.5 * s);
+      ctx.strokeRect(x - w / 2, y - h, w, h);
+    } else if (ob.type === 'beam') {
+      const w = 70 * s;
+      const beamY = y - 90 * s;
       ctx.fillStyle = '#8888aa';
-      ctx.fillRect(x-w/2, beamY, w, 14*s);
+      ctx.fillRect(x - w / 2, beamY, w, 14 * s);
       ctx.fillStyle = '#555577';
-      ctx.fillRect(x-w/2, beamY, 6*s, 90*s);
-      ctx.fillRect(x+w/2-6*s, beamY, 6*s, 90*s);
+      ctx.fillRect(x - w / 2, beamY, 6 * s, 90 * s);
+      ctx.fillRect(x + w / 2 - 6 * s, beamY, 6 * s, 90 * s);
     }
+    ctx.restore();
   }
 
-  function drawCoin(c){
+  function drawCoin(c) {
     const x = laneXatZ(c.lane, c.z);
-    const y = yAtZ(c.z) - 50*scaleAtZ(c.z);
-    const r = 10*scaleAtZ(c.z);
-    ctx.fillStyle = '#ffd23f';
+    const y = yAtZ(c.z) - 55 * scaleAtZ(c.z);
+    const r = 12 * scaleAtZ(c.z);
+
+    const coinGrad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 1, x, y, r);
+    coinGrad.addColorStop(0, '#fff6a1');
+    coinGrad.addColorStop(0.6, '#fffa65');
+    coinGrad.addColorStop(1, '#ffb142');
+
+    ctx.fillStyle = coinGrad;
     ctx.beginPath();
-    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle='#b8860b'; ctx.lineWidth=2; ctx.stroke();
+
+    ctx.strokeStyle = '#cc8e35';
+    ctx.lineWidth = Math.max(1, 2 * scaleAtZ(c.z));
+    ctx.stroke();
   }
 
   function drawParticles(){
@@ -546,6 +589,7 @@ function playCrashSound() {
     drawParticles();
   }
 
+  // ---------- Main Game Loop ----------
   let lastTime = performance.now();
   function loop(now){
     const dt = Math.min(0.04, (now-lastTime)/1000);
