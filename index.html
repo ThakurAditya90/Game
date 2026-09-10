@@ -151,7 +151,7 @@
   const customCoinSound = new Audio('coin.mp3');
   
   const playerImg = new Image();
-  playerImg.src = 'character.png'; // Will fallback to procedural drawing if file missing
+  playerImg.src = 'character.png'; // Fallbacks to procedural drawing if image file is absent
 
   function playCoinSound() {
     customCoinSound.currentTime = 0;
@@ -369,7 +369,7 @@
     return horizonY + (GROUND_Y-horizonY)*(1-z);
   }
 
-  // ---------- Subway Surfers Graphics Theme ----------
+  // ---------- Visual Graphics & Renderer ----------
   function drawRoad() {
     const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.35);
     skyGrad.addColorStop(0, '#1a0b2e');
@@ -431,7 +431,7 @@
     ctx.ellipse(px, GROUND_Y + 15, 24, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Check if custom character image loaded successfully
+    // Render uploaded custom character image if available
     if (playerImg.complete && playerImg.naturalWidth !== 0) {
       const charWidth = 60, charHeight = 80;
       if (sliding) {
@@ -440,7 +440,7 @@
         ctx.drawImage(playerImg, px - charWidth / 2, py - charHeight, charWidth, charHeight);
       }
     } else {
-      // Procedural Vector Character fallback
+      // Vector Character Fallback
       const legCycle = Math.sin(elapsed * 15);
       const armCycle = Math.cos(elapsed * 15);
 
@@ -495,6 +495,7 @@
     if (ob.type === 'car') {
       const w = 80 * s, h = 60 * s;
 
+      // Train Body
       const trainGrad = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
       trainGrad.addColorStop(0, '#d92338');
       trainGrad.addColorStop(0.5, '#ff4757');
@@ -505,17 +506,26 @@
       ctx.roundRect(x - w / 2, y - h, w, h, 6 * s);
       ctx.fill();
 
+      // Train Outline
       ctx.strokeStyle = '#2f3542';
       ctx.lineWidth = Math.max(2, 3 * s);
       ctx.stroke();
 
+      // Windshield
       ctx.fillStyle = '#70a1ff';
-      ctx.fillRect(x - w / 2 + w * 0.1, y - h + h * 0.15, w * 0.8, h * 0.3);
+      ctx.fillRect(x - w / 2 + w * 0.1, y - h + h * 0.15, w * 0.8, h * 0.28);
 
+      // Custom Label: "THAKUR ADITYA"
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${Math.max(8, 11 * s)}px "Segoe UI", Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText("THAKUR ADITYA", x, y - h * 0.48);
+
+      // Yellow Headlights
       ctx.fillStyle = '#eccc68';
       ctx.beginPath();
-      ctx.arc(x - w * 0.3, y - h * 0.2, 5 * s, 0, Math.PI * 2);
-      ctx.arc(x + w * 0.3, y - h * 0.2, 5 * s, 0, Math.PI * 2);
+      ctx.arc(x - w * 0.3, y - h * 0.18, 5 * s, 0, Math.PI * 2);
+      ctx.arc(x + w * 0.3, y - h * 0.18, 5 * s, 0, Math.PI * 2);
       ctx.fill();
 
     } else if (ob.type === 'barrier') {
@@ -595,11 +605,12 @@
     const dt = Math.min(0.04, (now-lastTime)/1000);
     lastTime = now;
     if(state === 'running') update(dt);
-    draw();
-    requestAnimationFrame(loop);
+   draw(); 
+   requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
 })();
 </script>
 </body>
 </html>
+ 
