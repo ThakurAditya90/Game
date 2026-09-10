@@ -163,19 +163,12 @@
     osc.stop(audioCtx.currentTime + 0.15);
   }
 
-  function playCrashSound() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.3);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
+  const customCrashSound = new Audio('crash.mp3');
+
+function playCrashSound() {
+  customCrashSound.currentTime = 0;
+  customCrashSound.play().catch(err => console.log('Audio playback prevented:', err));
+}
   }
 
   const canvas = document.getElementById('game');
