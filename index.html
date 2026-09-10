@@ -2,49 +2,144 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>THAKUR ADITYA 3D</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#87ceeb; font-family:'Arial Black', sans-serif; overflow:hidden; user-select:none; }
-  #canvas-container { width:100vw; height:100vh; }
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+  }
+  body { 
+    background: #87ceeb; 
+    font-family: 'Arial Black', sans-serif; 
+    overflow: hidden; 
+    user-select: none; 
+    touch-action: manipulation;
+  }
+  #canvas-container { 
+    width: 100vw; 
+    height: 100vh; 
+  }
   
-  /* Subway Surfers Style HUD */
+  /* HUD */
   #hud {
-    position:absolute; top:20px; left:20px; right:20px;
-    display:flex; justify-content:space-between; align-items:center;
-    pointer-events:none; z-index:10;
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+    right: 20px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    pointer-events: none; 
+    z-index: 10;
   }
   .score-box {
     background: linear-gradient(180deg, #38b6ff, #004aad);
-    padding: 8px 20px; border-radius: 20px; border: 3px solid #fff;
-    color:#fff; font-size:24px; text-shadow: 2px 2px #000;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+    padding: 10px 24px; 
+    border-radius: 25px; 
+    border: 3px solid #fff;
+    color: #fff; 
+    font-size: 24px; 
+    text-shadow: 2px 2px #000;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
   }
   .coin-box {
     background: linear-gradient(180deg, #ffde59, #ff914d);
-    padding: 8px 20px; border-radius: 20px; border: 3px solid #fff;
-    color:#fff; font-size:24px; text-shadow: 2px 2px #000;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
+    padding: 10px 24px; 
+    border-radius: 25px; 
+    border: 3px solid #fff;
+    color: #fff; 
+    font-size: 24px; 
+    text-shadow: 2px 2px #000;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+  }
+
+  /* On-Screen Touch Controls */
+  #touch-controls {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 30;
+  }
+  .horizontal-btns {
+    display: flex;
+    gap: 15px;
+  }
+  .ctrl-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 3px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .ctrl-btn:active {
+    background: rgba(255, 222, 89, 0.85);
+    transform: scale(0.92);
   }
 
   /* Overlay UI */
   .overlay {
-    position:absolute; inset:0; background:rgba(0,0,0,0.6);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    color:#fff; z-index:20;
+    position: absolute; 
+    inset: 0; 
+    background: rgba(0, 0, 0, 0.65);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    color: #fff; 
+    z-index: 40;
   }
-  .hidden { display:none !important; }
-  h1 { font-size:48px; color:#ffde59; text-shadow:4px 4px #ff3131; margin-bottom:10px; text-align:center; }
-  p { font-size:16px; margin-bottom:10px; color:#eee; text-align:center; max-width:80%; }
+  .hidden { 
+    display: none !important; 
+  }
+  h1 { 
+    font-size: 48px; 
+    color: #ffde59; 
+    text-shadow: 4px 4px #ff3131; 
+    margin-bottom: 12px; 
+    text-align: center; 
+  }
+  p { 
+    font-size: 16px; 
+    margin-bottom: 10px; 
+    color: #eee; 
+    text-align: center; 
+    max-width: 85%; 
+  }
   
-  button {
+  button.action-btn {
     background: linear-gradient(180deg, #ff3131, #ff914d);
-    color:#fff; border:4px solid #fff; padding:15px 40px; font-size:24px;
-    font-weight:bold; border-radius:30px; cursor:pointer; margin-top:20px;
-    box-shadow:0 6px 0 #8b0000; text-shadow:2px 2px #000;
+    color: #fff; 
+    border: 4px solid #fff; 
+    padding: 14px 40px; 
+    font-size: 24px;
+    font-weight: bold; 
+    border-radius: 35px; 
+    cursor: pointer; 
+    margin-top: 20px;
+    box-shadow: 0 6px 0 #8b0000; 
+    text-shadow: 2px 2px #000;
   }
-  button:active { transform:translateY(4px); box-shadow:0 2px 0 #8b0000; }
+  button.action-btn:active { 
+    transform: translateY(4px); 
+    box-shadow: 0 2px 0 #8b0000; 
+  }
 </style>
 
 <!-- Three.js Engine -->
@@ -59,53 +154,77 @@
   <div class="coin-box">🪙 <span id="coins">0</span></div>
 </div>
 
+<!-- Virtual On-Screen Direction Buttons -->
+<div id="touch-controls">
+  <button id="btn-up" class="ctrl-btn">▲</button>
+  <div class="horizontal-btns">
+    <button id="btn-left" class="ctrl-btn">◀</button>
+    <button id="btn-down" class="ctrl-btn">▼</button>
+    <button id="btn-right" class="ctrl-btn">▶</button>
+  </div>
+</div>
+
 <div id="startScreen" class="overlay">
   <h1>THAKUR ADITYA</h1>
-  <p>Use LEFT/RIGHT arrows to change lanes, UP to Jump, DOWN to Slide!</p>
-  <p style="color:#ffde59;"><b>Double-Click / Double-Tap for HOVERBOARD shield!</b></p>
-  <button id="startBtn">PLAY NOW</button>
+  <p>Use Screen Buttons, Arrow Keys (A/D/W/S), or Swipe Gestures!</p>
+  <p style="color:#ffde59;"><b>Double-Click / Double-Tap screen for HOVERBOARD shield!</b></p>
+  <button id="startBtn" class="action-btn">PLAY NOW</button>
 </div>
 
 <div id="gameOverScreen" class="overlay hidden">
   <h1 style="color:#ff3131;">BUSTED!</h1>
   <p>Final Score: <span id="finalScore">0</span></p>
-  <button id="restartBtn">TRY AGAIN</button>
+  <button id="restartBtn" class="action-btn">TRY AGAIN</button>
 </div>
 
 <script>
 // Sound Audio Elements
 const crashSound = new Audio('crash.mp3');
 const coinSound = new Audio('coin.mp3');
+const hoverboardSound = new Audio('Hoverboard.mp3'); // Added Hoverboard Sound
 
-// Game State
+// Game State Variables
 let scene, camera, renderer;
-let player, playerMesh, hoverboard;
+let player, playerBody, leftLeg, rightLeg, leftArm, rightArm, hoverboard;
+
 let activeLane = 1; // 0: Left, 1: Center, 2: Right
 const laneX = [-3.5, 0, 3.5];
-let isJumping = false, jumpVelocity = 0;
-let isSliding = false, slideTimer = 0;
-let isHovering = false, hoverTimer = 0;
+
+let isJumping = false;
+let jumpVelocity = 0;
+let isSliding = false;
+let slideTimer = 0;
+let isHovering = false;
+let hoverTimer = 0;
 let isPlaying = false;
-let score = 0, coins = 0;
-let speed = 0.4;
+
+let score = 0;
+let coins = 0;
+let speed = 0.35;
 
 let obstacles = [];
 let coinObjects = [];
+let sceneryObjects = [];
+
+// Gesture Touch Controls
+let touchStartX = 0;
+let touchStartY = 0;
+let lastTapTime = 0;
 
 function init3D() {
   const container = document.getElementById('canvas-container');
   
-  // Scene Setup
+  // 3D Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.FogExp2(0x87ceeb, 0.015);
+  scene.fog = new THREE.FogExp2(0x87ceeb, 0.012);
 
-  // Perspective Camera
+  // Camera
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 5, 10);
+  camera.position.set(0, 5.5, 10);
   camera.lookAt(0, 2, -10);
 
-  // Renderer Setup
+  // WebGL Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
@@ -113,26 +232,64 @@ function init3D() {
   container.appendChild(renderer.domElement);
 
   // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xfffaed, 0.8);
-  dirLight.position.set(20, 40, 20);
+  const dirLight = new THREE.DirectionalLight(0xfffaed, 0.85);
+  dirLight.position.set(20, 45, 20);
   dirLight.castShadow = true;
   scene.add(dirLight);
 
-  // Ground & Railway Tracks
+  // World Generation
   createEnvironment();
-
-  // Create Player with Hoverboard
   createPlayer();
 
+  // Event Listeners
   window.addEventListener('resize', onWindowResize);
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('dblclick', activateHoverboard);
+  window.addEventListener('click', () => window.focus());
+
+  // Swipe & Touch Gestures
+  window.addEventListener('touchstart', handleTouchStart);
+  window.addEventListener('touchend', handleTouchEnd);
+
+  // Virtual On-Screen Button Listeners
+  setupButtonControls();
+}
+
+function setupButtonControls() {
+  document.getElementById('btn-left').addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (isPlaying && activeLane > 0) activeLane--;
+  });
+
+  document.getElementById('btn-right').addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (isPlaying && activeLane < 2) activeLane++;
+  });
+
+  document.getElementById('btn-up').addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (isPlaying && !isJumping) {
+      isJumping = true;
+      jumpVelocity = 0.26;
+    }
+  });
+
+  document.getElementById('btn-down').addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    if (isPlaying && !isSliding) {
+      isSliding = true;
+      slideTimer = 30;
+      playerBody.scale.set(1, 0.5, 1);
+    }
+  });
 }
 
 function createEnvironment() {
-  // Grass Ground
-  const grassGeo = new THREE.PlaneGeometry(100, 1000);
+  // Grass Terrain
+  const grassGeo = new THREE.PlaneGeometry(120, 1000);
   const grassMat = new THREE.MeshLambertMaterial({ color: 0x55aa33 });
   const grass = new THREE.Mesh(grassGeo, grassMat);
   grass.rotation.x = -Math.PI / 2;
@@ -140,9 +297,9 @@ function createEnvironment() {
   grass.receiveShadow = true;
   scene.add(grass);
 
-  // Main Track Bed
+  // Track Bed
   const trackGeo = new THREE.PlaneGeometry(12, 1000);
-  const trackMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
+  const trackMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
   const tracks = new THREE.Mesh(trackGeo, trackMat);
   tracks.rotation.x = -Math.PI / 2;
   tracks.position.y = 0.01;
@@ -150,35 +307,93 @@ function createEnvironment() {
   tracks.receiveShadow = true;
   scene.add(tracks);
 
+  // Wooden Ties
+  for (let z = 10; z > -800; z -= 3) {
+    const tieGeo = new THREE.BoxGeometry(11, 0.05, 0.8);
+    const tieMat = new THREE.MeshLambertMaterial({ color: 0x5c4033 });
+    const tie = new THREE.Mesh(tieGeo, tieMat);
+    tie.position.set(0, 0.03, z);
+    scene.add(tie);
+  }
+
   // Steel Rails
   [-3.5, 0, 3.5].forEach(x => {
     [-0.8, 0.8].forEach(offset => {
       const railGeo = new THREE.BoxGeometry(0.15, 0.2, 1000);
-      const railMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
+      const railMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.85 });
       const rail = new THREE.Mesh(railGeo, railMat);
       rail.position.set(x + offset, 0.1, -400);
       scene.add(rail);
     });
   });
+
+  // Side Walls
+  [-6.5, 6.5].forEach(x => {
+    const wallGeo = new THREE.BoxGeometry(0.8, 1.8, 1000);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x8b7d6b });
+    const wall = new THREE.Mesh(wallGeo, wallMat);
+    wall.position.set(x, 0.9, -400);
+    scene.add(wall);
+  });
+
+  createParkArch();
+}
+
+function createParkArch() {
+  const archGroup = new THREE.Group();
+
+  const pillarGeo = new THREE.BoxGeometry(1.5, 8, 1.5);
+  const pillarMat = new THREE.MeshStandardMaterial({ color: 0x708090 });
+
+  const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+  leftPillar.position.set(-7, 4, -40);
+  archGroup.add(leftPillar);
+
+  const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+  rightPillar.position.set(7, 4, -40);
+  archGroup.add(rightPillar);
+
+  const topGeo = new THREE.BoxGeometry(16, 2, 1.5);
+  const topMesh = new THREE.Mesh(topGeo, pillarMat);
+  topMesh.position.set(0, 8, -40);
+  archGroup.add(topMesh);
+
+  // Title Canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2e8b57';
+  ctx.fillRect(0, 0, 512, 128);
+  ctx.fillStyle = '#ffde59';
+  ctx.font = 'bold 36px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText("THAKUR ADITYA PARK", 256, 75);
+
+  const signTexture = new THREE.CanvasTexture(canvas);
+  const signGeo = new THREE.PlaneGeometry(12, 1.8);
+  const signMat = new THREE.MeshBasicMaterial({ map: signTexture });
+  const signMesh = new THREE.Mesh(signGeo, signMat);
+  signMesh.position.set(0, 8, -39.2);
+  archGroup.add(signMesh);
+
+  scene.add(archGroup);
 }
 
 function createHoverboard() {
   const boardGroup = new THREE.Group();
 
-  // Hoverboard Deck
-  const deckGeo = new THREE.BoxGeometry(1.2, 0.15, 3.2);
-  const deckMat = new THREE.MeshStandardMaterial({ color: 0xff3131, metalness: 0.6, roughness: 0.2 });
+  const deckGeo = new THREE.BoxGeometry(1.3, 0.15, 3.4);
+  const deckMat = new THREE.MeshStandardMaterial({ color: 0xff3131, metalness: 0.7, roughness: 0.2 });
   const deck = new THREE.Mesh(deckGeo, deckMat);
   boardGroup.add(deck);
 
-  // Glowing Thruster Outline
-  const glowGeo = new THREE.BoxGeometry(1.3, 0.1, 3.0);
+  const glowGeo = new THREE.BoxGeometry(1.4, 0.1, 3.2);
   const glowMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
   const glow = new THREE.Mesh(glowGeo, glowMat);
-  glow.position.y = -0.05;
+  glow.position.y = -0.06;
   boardGroup.add(glow);
 
-  boardGroup.position.set(0, -0.8, 0);
+  boardGroup.position.set(0, -0.85, 0);
   boardGroup.visible = false;
   return boardGroup;
 }
@@ -186,23 +401,41 @@ function createHoverboard() {
 function createPlayer() {
   player = new THREE.Group();
 
-  // Character Body
-  const bodyGeo = new THREE.BoxGeometry(1.2, 2, 1);
+  const bodyGeo = new THREE.BoxGeometry(1.2, 1.4, 0.8);
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3131 });
-  playerMesh = new THREE.Mesh(bodyGeo, bodyMat);
-  playerMesh.position.y = 1;
-  playerMesh.castShadow = true;
-  player.add(playerMesh);
+  playerBody = new THREE.Mesh(bodyGeo, bodyMat);
+  playerBody.position.y = 1.6;
+  playerBody.castShadow = true;
+  player.add(playerBody);
 
-  // Head
   const headGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
   const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.set(0, 2.3, 0);
+  head.position.set(0, 2.7, 0);
   head.castShadow = true;
   player.add(head);
 
-  // Attach Hoverboard
+  const limbGeo = new THREE.BoxGeometry(0.35, 0.9, 0.35);
+  const limbMat = new THREE.MeshStandardMaterial({ color: 0x004aad });
+
+  leftLeg = new THREE.Mesh(limbGeo, limbMat);
+  leftLeg.position.set(-0.35, 0.5, 0);
+  player.add(leftLeg);
+
+  rightLeg = new THREE.Mesh(limbGeo, limbMat);
+  rightLeg.position.set(0.35, 0.5, 0);
+  player.add(rightLeg);
+
+  const armMat = new THREE.MeshStandardMaterial({ color: 0xff3131 });
+
+  leftArm = new THREE.Mesh(limbGeo, armMat);
+  leftArm.position.set(-0.8, 1.6, 0);
+  player.add(leftArm);
+
+  rightArm = new THREE.Mesh(limbGeo, armMat);
+  rightArm.position.set(0.8, 1.6, 0);
+  player.add(rightArm);
+
   hoverboard = createHoverboard();
   player.add(hoverboard);
 
@@ -210,26 +443,43 @@ function createPlayer() {
   scene.add(player);
 }
 
+function createTree(zPos, xPos) {
+  const treeGroup = new THREE.Group();
+
+  const trunkGeo = new THREE.CylinderGeometry(0.4, 0.6, 3, 8);
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.y = 1.5;
+  treeGroup.add(trunk);
+
+  const leavesGeo = new THREE.SphereGeometry(2, 8, 8);
+  const leavesMat = new THREE.MeshLambertMaterial({ color: 0x228b22 });
+  const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+  leaves.position.y = 3.5;
+  treeGroup.add(leaves);
+
+  treeGroup.position.set(xPos, 0, zPos);
+  scene.add(treeGroup);
+  sceneryObjects.push(treeGroup);
+}
+
 function createTrain(zPos, lane) {
   const trainGroup = new THREE.Group();
 
-  // Train Body
-  const bodyGeo = new THREE.BoxGeometry(2.8, 3.5, 12);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd92338, metalness: 0.3 });
+  const bodyGeo = new THREE.BoxGeometry(2.8, 3.6, 13);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd92338, metalness: 0.35, roughness: 0.3 });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.y = 1.75;
+  body.position.y = 1.8;
   body.castShadow = true;
-  body.receiveShadow = true;
   trainGroup.add(body);
 
-  // Windshield
   const glassGeo = new THREE.BoxGeometry(2.4, 1.2, 0.1);
   const glassMat = new THREE.MeshStandardMaterial({ color: 0x70a1ff });
   const glass = new THREE.Mesh(glassGeo, glassMat);
-  glass.position.set(0, 2.5, 6.01);
+  glass.position.set(0, 2.6, 6.51);
   trainGroup.add(glass);
 
-  // "THAKUR ADITYA" Canvas Texture
+  // Train Text Front
   const canvas = document.createElement('canvas');
   canvas.width = 256; canvas.height = 64;
   const ctx = canvas.getContext('2d');
@@ -244,7 +494,7 @@ function createTrain(zPos, lane) {
   const textGeo = new THREE.PlaneGeometry(2.4, 0.6);
   const textMat = new THREE.MeshBasicMaterial({ map: textTexture });
   const textMesh = new THREE.Mesh(textGeo, textMat);
-  textMesh.position.set(0, 1.4, 6.02);
+  textMesh.position.set(0, 1.4, 6.52);
   trainGroup.add(textMesh);
 
   trainGroup.position.set(laneX[lane], 0, zPos);
@@ -253,61 +503,117 @@ function createTrain(zPos, lane) {
 }
 
 function createCoin(zPos, lane) {
-  const coinGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.2, 16);
-  const coinMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.2 });
+  const coinGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.18, 16);
+  const coinMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.85, roughness: 0.15 });
   const coin = new THREE.Mesh(coinGeo, coinMat);
   coin.rotation.x = Math.PI / 2;
   coin.position.set(laneX[lane], 1.2, zPos);
-  coin.castShadow = true;
   scene.add(coin);
   coinObjects.push(coin);
 }
 
-// Input Control Listeners
-window.addEventListener('keydown', (e) => {
+// Keyboard Logic
+function handleKeyDown(e) {
   if (!isPlaying) return;
-  if ((e.key === 'ArrowLeft' || e.key === 'a') && activeLane > 0) activeLane--;
-  if ((e.key === 'ArrowRight' || e.key === 'd') && activeLane < 2) activeLane++;
-  if ((e.key === 'ArrowUp' || e.key === ' ') && !isJumping) {
+  const key = e.key.toLowerCase();
+
+  if ((key === 'arrowleft' || key === 'a') && activeLane > 0) activeLane--;
+  if ((key === 'arrowright' || key === 'd') && activeLane < 2) activeLane++;
+  if ((key === 'arrowup' || key === 'w' || key === ' ') && !isJumping) {
     isJumping = true;
-    jumpVelocity = 0.25;
+    jumpVelocity = 0.26;
   }
-  if ((e.key === 'ArrowDown' || e.key === 's') && !isSliding) {
+  if ((key === 'arrowdown' || key === 's') && !isSliding) {
     isSliding = true;
     slideTimer = 30;
-    playerMesh.scale.set(1, 0.5, 1);
+    playerBody.scale.set(1, 0.5, 1);
   }
-});
+}
 
-// Activate Hoverboard on Double Click
-window.addEventListener('dblclick', activateHoverboard);
+// Swipe Controls
+function handleTouchStart(e) {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTapTime;
+  if (tapLength < 300 && tapLength > 0) {
+    activateHoverboard();
+  }
+  lastTapTime = currentTime;
+}
+
+function handleTouchEnd(e) {
+  if (!isPlaying) return;
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 30 && activeLane < 2) activeLane++;
+    else if (diffX < -30 && activeLane > 0) activeLane--;
+  } else {
+    if (diffY < -30 && !isJumping) {
+      isJumping = true;
+      jumpVelocity = 0.26;
+    } else if (diffY > 30 && !isSliding) {
+      isSliding = true;
+      slideTimer = 30;
+      playerBody.scale.set(1, 0.5, 1);
+    }
+  }
+}
 
 function activateHoverboard() {
   if (!isPlaying || isHovering) return;
   isHovering = true;
-  hoverTimer = 300; // ~5 seconds duration
+  hoverTimer = 320;
   hoverboard.visible = true;
-  playerMesh.position.y = 1.4;
+  playerBody.position.y = 1.9;
+
+  // Play Hoverboard sound
+  hoverboardSound.currentTime = 0;
+  hoverboardSound.play().catch(() => {});
 }
 
-function spawnObjects() {
-  if (Math.random() < 0.03) {
+function spawnWorldObjects() {
+  if (Math.random() < 0.008) {
     const lane = Math.floor(Math.random() * 3);
-    createTrain(-100, lane);
+    const lastTrain = obstacles[obstacles.length - 1];
+    if (!lastTrain || lastTrain.mesh.position.z > -70) {
+      createTrain(-120, lane);
+    }
   }
+
   if (Math.random() < 0.05) {
     const lane = Math.floor(Math.random() * 3);
-    createCoin(-100, lane);
+    createCoin(-120, lane);
+  }
+
+  if (Math.random() < 0.04) {
+    const side = Math.random() < 0.5 ? -10 : 10;
+    createTree(-120, side);
   }
 }
 
 function update() {
   if (!isPlaying) return;
 
-  // Smooth Lateral Lane Movement
-  player.position.x += (laneX[activeLane] - player.position.x) * 0.2;
+  // Lane Interpolation
+  player.position.x += (laneX[activeLane] - player.position.x) * 0.22;
 
-  // Jump Physics
+  // Running Animation
+  if (!isJumping && !isSliding) {
+    const time = Date.now() * 0.015;
+    leftLeg.rotation.x = Math.sin(time) * 0.6;
+    rightLeg.rotation.x = -Math.sin(time) * 0.6;
+    leftArm.rotation.x = -Math.sin(time) * 0.6;
+    rightArm.rotation.x = Math.sin(time) * 0.6;
+  }
+
+  // Jump Loop
   if (isJumping) {
     player.position.y += jumpVelocity;
     jumpVelocity -= 0.015;
@@ -317,27 +623,27 @@ function update() {
     }
   }
 
-  // Slide Logic
+  // Slide Timers
   if (isSliding) {
     slideTimer--;
     if (slideTimer <= 0) {
       isSliding = false;
-      playerMesh.scale.set(1, 1, 1);
+      playerBody.scale.set(1, 1, 1);
     }
   }
 
-  // Hoverboard Motion & Expiration
+  // Hoverboard Status
   if (isHovering) {
     hoverTimer--;
-    hoverboard.rotation.z = Math.sin(Date.now() * 0.01) * 0.1;
+    hoverboard.rotation.z = Math.sin(Date.now() * 0.012) * 0.12;
     if (hoverTimer <= 0) {
       isHovering = false;
       hoverboard.visible = false;
-      playerMesh.position.y = 1;
+      playerBody.position.y = 1.6;
     }
   }
 
-  // Obstacle Collision Logic
+  // Collisions
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let obs = obstacles[i];
     obs.mesh.position.z += speed;
@@ -345,11 +651,10 @@ function update() {
     if (Math.abs(obs.mesh.position.z - player.position.z) < 2.5 && obs.lane === activeLane) {
       if (player.position.y < 2.5) {
         if (isHovering) {
-          // Hoverboard acts as a crash shield
           isHovering = false;
           hoverTimer = 0;
           hoverboard.visible = false;
-          playerMesh.position.y = 1;
+          playerBody.position.y = 1.6;
           scene.remove(obs.mesh);
           obstacles.splice(i, 1);
           continue;
@@ -365,16 +670,16 @@ function update() {
     }
   }
 
-  // Coin Collection Logic
+  // Coin Pickups
   for (let i = coinObjects.length - 1; i >= 0; i--) {
     let coin = coinObjects[i];
     coin.position.z += speed;
-    coin.rotation.z += 0.05;
+    coin.rotation.z += 0.06;
 
-    if (Math.abs(coin.position.z - player.position.z) < 1.5 && Math.abs(coin.position.x - player.position.x) < 1) {
+    if (Math.abs(coin.position.z - player.position.z) < 1.6 && Math.abs(coin.position.x - player.position.x) < 1.2) {
       coins++;
       coinSound.currentTime = 0;
-      coinSound.play().catch(()=>{});
+      coinSound.play().catch(() => {});
       document.getElementById('coins').textContent = coins;
       scene.remove(coin);
       coinObjects.splice(i, 1);
@@ -384,10 +689,20 @@ function update() {
     }
   }
 
+  // Scenery Recycling
+  for (let i = sceneryObjects.length - 1; i >= 0; i--) {
+    let sc = sceneryObjects[i];
+    sc.position.z += speed;
+    if (sc.position.z > 15) {
+      scene.remove(sc);
+      sceneryObjects.splice(i, 1);
+    }
+  }
+
   score += 1;
   document.getElementById('score').textContent = Math.floor(score / 5);
 
-  spawnObjects();
+  spawnWorldObjects();
 }
 
 function animate() {
@@ -396,20 +711,45 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+function resetGame() {
+  obstacles.forEach(o => scene.remove(o.mesh));
+  coinObjects.forEach(c => scene.remove(c));
+  sceneryObjects.forEach(s => scene.remove(s));
+  obstacles = [];
+  coinObjects = [];
+  sceneryObjects = [];
+
+  activeLane = 1;
+  player.position.set(laneX[1], 0, 0);
+  isJumping = false;
+  isSliding = false;
+  isHovering = false;
+  hoverboard.visible = false;
+  playerBody.position.y = 1.6;
+  playerBody.scale.set(1, 1, 1);
+
+  score = 0; 
+  coins = 0;
+  speed = 0.35;
+  document.getElementById('score').textContent = "0";
+  document.getElementById('coins').textContent = "0";
+}
+
 function startGame() {
+  resetGame();
   isPlaying = true;
-  score = 0; coins = 0;
   document.getElementById('startScreen').classList.add('hidden');
   document.getElementById('gameOverScreen').classList.add('hidden');
+  window.focus();
 }
 
 function gameOver() {
   isPlaying = false;
   crashSound.currentTime = 0;
-  crashSound.play().catch(()=>{});
+  crashSound.play().catch(() => {});
   document.getElementById('finalScore').textContent = Math.floor(score / 5);
   document.getElementById('gameOverScreen').classList.remove('hidden');
-}
+ }
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
