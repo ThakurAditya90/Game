@@ -577,8 +577,9 @@ function activateHoverboard() {
   hoverboardSound.currentTime = 0;
   hoverboardSound.play().catch(() => {});
 }
-
+let lastCoinSpawnTime = 0;
 function spawnWorldObjects() {
+  // Train Spawning
   if (Math.random() < 0.008) {
     const lane = Math.floor(Math.random() * 3);
     const lastTrain = obstacles[obstacles.length - 1];
@@ -587,14 +588,20 @@ function spawnWorldObjects() {
     }
   }
 
-  if (Math.random() < 0.05) {
+  // 1 COIN EVERY 2 SECONDS (2000ms)
+  const currentTime = Date.now();
+  if (currentTime - lastCoinSpawnTime >= 2000) {
     const lane = Math.floor(Math.random() * 3);
     createCoin(-120, lane);
+    lastCoinSpawnTime = currentTime;
   }
 
+  // Trees Spawning
   if (Math.random() < 0.04) {
     const side = Math.random() < 0.5 ? -10 : 10;
     createTree(-120, side);
+  }
+}
   }
 }
 
